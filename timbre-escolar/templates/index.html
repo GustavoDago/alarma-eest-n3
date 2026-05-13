@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Timbre Escolar</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; font-size: 28px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; }
+        .btn { display: inline-block; padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; box-sizing: border-box; font-weight: bold; transition: background 0.3s; }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-primary { background-color: #3498db; }
+        .btn-primary:hover { background-color: #2980b9; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #34495e; }
+        input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .schedule-list { list-style: none; padding: 0; margin-top: 15px; }
+        .schedule-item { background: #f8f9fa; margin-bottom: 12px; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #3498db; }
+        .schedule-info { font-size: 20px; font-weight: bold; color: #2c3e50; }
+        .schedule-sub { font-size: 13px; color: #7f8c8d; margin-top: 4px; }
+        .manual-control { margin-top: 40px; padding-top: 25px; border-top: 2px solid #ecf0f1; text-align: center; }
+        .empty-state { text-align: center; color: #95a5a6; padding: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Sistema de Timbre Escolar</h1>
+        
+        <div class="form-group">
+            <label>Hora del Timbre (HH:MM)</label>
+            <input type="time" id="timeInput" required>
+        </div>
+        <div class="form-group">
+            <label>Duración del Sonido (segundos)</label>
+            <input type="number" id="durationInput" value="5" min="1" max="60">
+        </div>
+        <button class="btn btn-primary" onclick="addSchedule()">+ Agregar Horario</button>
+
+        <h3 style="margin-top: 35px; color: #2c3e50;">Horarios Programados</h3>
+        <ul class="schedule-list" id="scheduleList">
+            <!-- Items generados dinámicamente -->
+        </ul>
+
+        <div class="manual-control">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">Control Manual</h3>
+            <button class="btn btn-danger" style="padding: 18px; font-size: 20px; letter-spacing: 1px;" onclick="ringManual()">🚨 TOCAR TIMBRE AHORA</button>
+            <p style="color: #7f8c8d; font-size: 12px; margin-top: 10px;">El timbre sonará por 3 segundos.</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadSchedules() {
+            const res = await fetch('/api/schedules');
+            const data = await res.json();
+            const list = document.getElementById('scheduleList');
+            list.innerHTML = '';
+            
+            if (data.length === 0) {
+                list.innerHTML = '<div class="empty-state">No hay horarios programados.</div>';
+                return;
+            }
+
+            data.forEach((sch, idx) => {
+                const li = document.createElement('li');
+                li.className = 'schedule-item';
+                li.innerHTML = `
+                    <div>
+                        <div class="schedule-info">🕒 ${sch.time}</div>
+                        <div class="schedule-sub">Lunes a Viernes • ${sch.duration} seg.</div>
+                    </div>
+                    <button class="btn btn-danger" style="width: auto; padding: 8px 12px; font-size: 14px; margin-top: 0;" onclick="deleteSchedule(${idx})">Eliminar</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function addSchedule() {
+            const time = document.getElementById('timeInput').value;
+            const duration = document.getElementById('durationInput').value;
+            
+            if(!time) {
+                alert("Por favor, selecciona una hora válida.");
+                return;
+            }
+            
+            await fetch('/api/schedules', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({time, duration})
+            });
+            
+            document.getElementById('timeInput').value = '';
+            loadSchedules();
+        }
+
+        async function deleteSchedule(idx) {
+            if(confirm('¿Seguro que deseas eliminar este horario?')) {
+                await fetch(`/api/schedules/${idx}`, { method: 'DELETE' });
+                loadSchedules();
+            }
+        }
+
+        async function ringManual() {
+            if(confirm('¿Estás seguro de que quieres accionar el timbre en este momento?')) {
+                await fetch('/api/ring', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({duration: 3})
+                });
+            }
+        }
+
+        // Cargar horarios al cargar la página
+        loadSchedules();
+    </script>
+</body>
+</html>
