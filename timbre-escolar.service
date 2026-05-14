@@ -1,0 +1,16 @@
+[Unit]
+Description=Sistema de Timbre Escolar EEST N°3
+After=network.target
+
+[Service]
+Type=simple
+User=gustavo
+WorkingDirectory=/home/gustavo/alarma-eest-n3/timbre-escolar
+ExecStart=/home/gustavo/alarma-eest-n3/venv/bin/python app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

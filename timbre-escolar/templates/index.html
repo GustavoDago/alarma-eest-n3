@@ -3,117 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Timbre Escolar</title>
+    <title>Timbre Escolar — EEST N°3</title>
+    <meta name="description" content="Sistema de automatización de timbre escolar para la EEST N°3. Gestión de horarios, feriados y control manual.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2c3e50; font-size: 28px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; }
-        .btn { display: inline-block; padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; box-sizing: border-box; font-weight: bold; transition: background 0.3s; }
-        .btn-danger { background-color: #e74c3c; }
-        .btn-danger:hover { background-color: #c0392b; }
-        .btn-primary { background-color: #3498db; }
-        .btn-primary:hover { background-color: #2980b9; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #34495e; }
-        input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        .schedule-list { list-style: none; padding: 0; margin-top: 15px; }
-        .schedule-item { background: #f8f9fa; margin-bottom: 12px; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #3498db; }
-        .schedule-info { font-size: 20px; font-weight: bold; color: #2c3e50; }
-        .schedule-sub { font-size: 13px; color: #7f8c8d; margin-top: 4px; }
-        .manual-control { margin-top: 40px; padding-top: 25px; border-top: 2px solid #ecf0f1; text-align: center; }
-        .empty-state { text-align: center; color: #95a5a6; padding: 20px; font-style: italic; }
+        /* ─── Reset & Variables ─────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #21242f;
+            --bg-card-hover: #282c3a;
+            --border: #2e3345;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b90a0;
+            --text-muted: #5c6070;
+            --accent-morning: #f59e0b;
+            --accent-morning-dim: rgba(245, 158, 11, 0.12);
+            --accent-afternoon: #6366f1;
+            --accent-afternoon-dim: rgba(99, 102, 241, 0.12);
+            --accent-danger: #ef4444;
+            --accent-danger-dim: rgba(239, 68, 68, 0.12);
+            --accent-success: #22c55e;
+            --accent-success-dim: rgba(34, 197, 94, 0.12);
+            --accent-info: #3b82f6;
+            --accent-info-dim: rgba(59, 130, 246, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* ─── Layout ───────────────────────────────────────────────────── */
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .app-header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-title .icon {
+            font-size: 24px;
+        }
+
+        .app-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .main-content {
+            padding: 24px 0 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ─── Status Card ──────────────────────────────────────────────── */
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .status-info h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .status-date {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .status-next {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-next strong {
+            color: var(--accent-morning);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: var(--accent-success-dim);
+            color: var(--accent-success);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .status-badge.inactive {
+            background: var(--accent-danger-dim);
+            color: var(--accent-danger);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.active .dot { background: var(--accent-success); }
+        .status-badge.inactive .dot { background: var(--accent-danger); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ─── Section Panels ───────────────────────────────────────────── */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body {
+            padding: 0;
+        }
+
+        /* ─── Schedule Items ───────────────────────────────────────────── */
+        .schedule-group-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 14px 24px 8px;
+            color: var(--text-muted);
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            gap: 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background var(--transition);
+        }
+
+        .schedule-item:last-child { border-bottom: none; }
+        .schedule-item:hover { background: var(--bg-card-hover); }
+
+        .schedule-time {
+            font-size: 18px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            min-width: 60px;
+        }
+
+        .schedule-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .schedule-dot.morning { background: var(--accent-morning); box-shadow: 0 0 8px var(--accent-morning-dim); }
+        .schedule-dot.afternoon { background: var(--accent-afternoon); box-shadow: 0 0 8px var(--accent-afternoon-dim); }
+
+        .schedule-label {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .schedule-duration {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: all var(--transition);
+            line-height: 1;
+        }
+
+        .btn-delete:hover {
+            background: var(--accent-danger-dim);
+            color: var(--accent-danger);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ─── Holiday Items ────────────────────────────────────────────── */
+        .holiday-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 24px;
+            gap: 14px;
+            border-bottom: 1px solid var(--border);
+            transition: background var(--transition);
+        }
+
+        .holiday-item:last-child { border-bottom: none; }
+        .holiday-item:hover { background: var(--bg-card-hover); }
+
+        .holiday-date {
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            min-width: 100px;
+            color: var(--accent-danger);
+        }
+
+        .holiday-motivo {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .holiday-past {
+            opacity: 0.4;
+        }
+
+        /* ─── Add Forms ────────────────────────────────────────────────── */
+        .add-form {
+            display: none;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-primary);
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .add-form.visible {
+            display: flex;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .form-field label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-field input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .form-field input:focus {
+            border-color: var(--accent-info);
+        }
+
+        /* ─── Buttons ──────────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent-info);
+            color: #fff;
+        }
+        .btn-primary:hover { background: #2563eb; }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+        .btn-secondary:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--accent-info);
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+        .btn-ghost:hover { background: var(--accent-info-dim); }
+
+        /* ─── Manual Ring ──────────────────────────────────────────────── */
+        .manual-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-ring {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+            flex: 1;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-ring:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-ring:active {
+            transform: translateY(0);
+        }
+
+        .ring-duration-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ring-duration-field label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .ring-duration-field input {
+            width: 70px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        /* ─── Empty State ──────────────────────────────────────────────── */
+        .empty-state {
+            padding: 30px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ─── Responsive ───────────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .status-card { grid-template-columns: 1fr; }
+            .status-badge { justify-self: start; }
+            .add-form { flex-direction: column; }
+            .form-field { min-width: 100%; }
+            .manual-section { flex-direction: column; }
+            .btn-ring { width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔔 Sistema de Timbre Escolar</h1>
-        
-        <div class="form-group">
-            <label>Hora del Timbre (HH:MM)</label>
-            <input type="time" id="timeInput" required>
-        </div>
-        <div class="form-group">
-            <label>Duración del Sonido (segundos)</label>
-            <input type="number" id="durationInput" value="5" min="1" max="60">
-        </div>
-        <button class="btn btn-primary" onclick="addSchedule()">+ Agregar Horario</button>
 
-        <h3 style="margin-top: 35px; color: #2c3e50;">Horarios Programados</h3>
-        <ul class="schedule-list" id="scheduleList">
-            <!-- Items generados dinámicamente -->
-        </ul>
-
-        <div class="manual-control">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">Control Manual</h3>
-            <button class="btn btn-danger" style="padding: 18px; font-size: 20px; letter-spacing: 1px;" onclick="ringManual()">🚨 TOCAR TIMBRE AHORA</button>
-            <p style="color: #7f8c8d; font-size: 12px; margin-top: 10px;">El timbre sonará por 3 segundos.</p>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="container">
+            <div>
+                <div class="app-title"><span class="icon">🔔</span> Timbre Escolar</div>
+                <div class="app-subtitle">EEST N°3 — Panel de Control</div>
+            </div>
+            <div id="clock" style="font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-secondary);"></div>
         </div>
+    </header>
+
+    <div class="container main-content">
+
+        <!-- Status Card -->
+        <div class="status-card" id="statusCard">
+            <div class="status-info">
+                <h2>Estado del Sistema</h2>
+                <div class="status-date" id="statusDate">Cargando...</div>
+                <div class="status-next" id="statusNext"></div>
+            </div>
+            <div class="status-badge active" id="statusBadge">
+                <span class="dot"></span>
+                <span id="statusText">Cargando</span>
+            </div>
+        </div>
+
+        <!-- Horarios Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">📋 Horarios de Timbre</div>
+                <button class="btn btn-ghost" id="toggleAddHorario" onclick="toggleForm('addHorarioForm')">+ Agregar</button>
+            </div>
+            <div class="panel-body" id="horariosList">
+                <div class="empty-state">Cargando horarios...</div>
+            </div>
+            <div class="add-form" id="addHorarioForm">
+                <div class="form-field">
+                    <label>Hora</label>
+                    <input type="time" id="inputHora" required>
+                </div>
+                <div class="form-field" style="flex: 2;">
+                    <label>Etiqueta</label>
+                    <input type="text" id="inputEtiqueta" placeholder="Ej: Inicio Recreo 1">
+                </div>
+                <div class="form-field" style="max-width: 100px;">
+                    <label>Duración (s)</label>
+                    <input type="number" id="inputDuracion" value="5" min="1" max="60">
+                </div>
+                <button class="btn btn-primary" onclick="addHorario()">Guardar</button>
+                <button class="btn btn-secondary" onclick="toggleForm('addHorarioForm')">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Días sin Timbre Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">📅 Días sin Timbre</div>
+                <button class="btn btn-ghost" onclick="toggleForm('addDiaForm')">+ Agregar</button>
+            </div>
+            <div class="panel-body" id="diasList">
+                <div class="empty-state">Cargando días sin timbre...</div>
+            </div>
+            <div class="add-form" id="addDiaForm">
+                <div class="form-field">
+                    <label>Fecha</label>
+                    <input type="date" id="inputFecha" required>
+                </div>
+                <div class="form-field" style="flex: 2;">
+                    <label>Motivo</label>
+                    <input type="text" id="inputMotivo" placeholder="Ej: Jornada docente">
+                </div>
+                <button class="btn btn-primary" onclick="addDia()">Guardar</button>
+                <button class="btn btn-secondary" onclick="toggleForm('addDiaForm')">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Control Manual -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">🚨 Control Manual</div>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div class="manual-section">
+                    <button class="btn-ring" id="btnRing" onclick="ringManual()">
+                        TOCAR TIMBRE AHORA
+                    </button>
+                    <div class="ring-duration-field">
+                        <label>Segundos</label>
+                        <input type="number" id="manualDuration" value="3" min="1" max="30">
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        async function loadSchedules() {
-            const res = await fetch('/api/schedules');
+        // ─── Reloj en tiempo real ──────────────────────────────────────────
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ─── Toggle de formularios ─────────────────────────────────────────
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('visible');
+        }
+
+        // ─── Cargar Estado ─────────────────────────────────────────────────
+        async function loadStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                document.getElementById('statusDate').textContent = `${data.dia_semana} ${data.fecha}`;
+
+                const badge = document.getElementById('statusBadge');
+                const badgeText = document.getElementById('statusText');
+
+                if (data.activo) {
+                    badge.className = 'status-badge active';
+                    badgeText.textContent = 'Activo';
+                    if (data.proximo_timbre) {
+                        document.getElementById('statusNext').innerHTML =
+                            `Próximo: <strong>${data.proximo_timbre.hora}</strong> — ${data.proximo_timbre.etiqueta}`;
+                    } else {
+                        document.getElementById('statusNext').textContent = 'No hay más timbres programados para hoy.';
+                    }
+                } else {
+                    badge.className = 'status-badge inactive';
+                    badgeText.textContent = 'Inactivo';
+                    document.getElementById('statusNext').textContent = `Motivo: ${data.motivo_inactivo}`;
+                }
+            } catch (e) {
+                document.getElementById('statusDate').textContent = 'Error de conexión';
+            }
+        }
+
+        // ─── Cargar Horarios ───────────────────────────────────────────────
+        async function loadHorarios() {
+            const res = await fetch('/api/horarios');
             const data = await res.json();
-            const list = document.getElementById('scheduleList');
-            list.innerHTML = '';
-            
+            const container = document.getElementById('horariosList');
+
             if (data.length === 0) {
-                list.innerHTML = '<div class="empty-state">No hay horarios programados.</div>';
+                container.innerHTML = '<div class="empty-state">No hay horarios programados. Usa "+ Agregar" para crear uno.</div>';
                 return;
             }
 
-            data.forEach((sch, idx) => {
-                const li = document.createElement('li');
-                li.className = 'schedule-item';
-                li.innerHTML = `
-                    <div>
-                        <div class="schedule-info">🕒 ${sch.time}</div>
-                        <div class="schedule-sub">Lunes a Viernes • ${sch.duration} seg.</div>
+            let html = '';
+            let lastShift = '';
+
+            data.forEach((h, idx) => {
+                const hourNum = parseInt(h.hora.split(':')[0]);
+                const shift = hourNum < 13 ? 'morning' : 'afternoon';
+                const shiftLabel = shift === 'morning' ? '☀️ Turno Mañana' : '🌙 Turno Tarde';
+
+                if (shift !== lastShift) {
+                    html += `<div class="schedule-group-label">${shiftLabel}</div>`;
+                    lastShift = shift;
+                }
+
+                html += `
+                    <div class="schedule-item">
+                        <span class="schedule-dot ${shift}"></span>
+                        <span class="schedule-time">${h.hora}</span>
+                        <span class="schedule-label">${h.etiqueta}</span>
+                        <span class="schedule-duration">${h.duracion}s</span>
+                        <button class="btn-delete" onclick="deleteHorario(${idx})" title="Eliminar">✕</button>
                     </div>
-                    <button class="btn btn-danger" style="width: auto; padding: 8px 12px; font-size: 14px; margin-top: 0;" onclick="deleteSchedule(${idx})">Eliminar</button>
                 `;
-                list.appendChild(li);
             });
+
+            container.innerHTML = html;
         }
 
-        async function addSchedule() {
-            const time = document.getElementById('timeInput').value;
-            const duration = document.getElementById('durationInput').value;
-            
-            if(!time) {
-                alert("Por favor, selecciona una hora válida.");
+        // ─── Cargar Días sin Timbre ────────────────────────────────────────
+        async function loadDias() {
+            const res = await fetch('/api/dias-sin-timbre');
+            const data = await res.json();
+            const container = document.getElementById('diasList');
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay días sin timbre configurados.</div>';
                 return;
             }
-            
-            await fetch('/api/schedules', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({time, duration})
+
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+
+            data.forEach((d, idx) => {
+                const isPast = d.fecha < today;
+                html += `
+                    <div class="holiday-item ${isPast ? 'holiday-past' : ''}">
+                        <span class="holiday-date">${d.fecha}</span>
+                        <span class="holiday-motivo">${d.motivo}</span>
+                        <button class="btn-delete" onclick="deleteDia(${idx})" title="Eliminar">✕</button>
+                    </div>
+                `;
             });
-            
-            document.getElementById('timeInput').value = '';
-            loadSchedules();
+
+            container.innerHTML = html;
         }
 
-        async function deleteSchedule(idx) {
-            if(confirm('¿Seguro que deseas eliminar este horario?')) {
-                await fetch(`/api/schedules/${idx}`, { method: 'DELETE' });
-                loadSchedules();
-            }
+        // ─── Acciones CRUD ─────────────────────────────────────────────────
+        async function addHorario() {
+            const hora = document.getElementById('inputHora').value;
+            const etiqueta = document.getElementById('inputEtiqueta').value;
+            const duracion = document.getElementById('inputDuracion').value;
+
+            if (!hora) { alert('Seleccioná una hora.'); return; }
+            if (!etiqueta) { alert('Escribí una etiqueta para el timbre.'); return; }
+
+            await fetch('/api/horarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hora, etiqueta, duracion })
+            });
+
+            document.getElementById('inputHora').value = '';
+            document.getElementById('inputEtiqueta').value = '';
+            document.getElementById('inputDuracion').value = '5';
+            toggleForm('addHorarioForm');
+            loadHorarios();
+            loadStatus();
+        }
+
+        async function deleteHorario(idx) {
+            if (!confirm('¿Eliminar este horario?')) return;
+            await fetch(`/api/horarios/${idx}`, { method: 'DELETE' });
+            loadHorarios();
+            loadStatus();
+        }
+
+        async function addDia() {
+            const fecha = document.getElementById('inputFecha').value;
+            const motivo = document.getElementById('inputMotivo').value;
+
+            if (!fecha) { alert('Seleccioná una fecha.'); return; }
+
+            await fetch('/api/dias-sin-timbre', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fecha, motivo: motivo || 'Día sin timbre' })
+            });
+
+            document.getElementById('inputFecha').value = '';
+            document.getElementById('inputMotivo').value = '';
+            toggleForm('addDiaForm');
+            loadDias();
+            loadStatus();
+        }
+
+        async function deleteDia(idx) {
+            if (!confirm('¿Eliminar este día sin timbre?')) return;
+            await fetch(`/api/dias-sin-timbre/${idx}`, { method: 'DELETE' });
+            loadDias();
+            loadStatus();
         }
 
         async function ringManual() {
-            if(confirm('¿Estás seguro de que quieres accionar el timbre en este momento?')) {
-                await fetch('/api/ring', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({duration: 3})
-                });
-            }
+            if (!confirm('¿Activar el timbre ahora?')) return;
+            const duration = document.getElementById('manualDuration').value;
+            const btn = document.getElementById('btnRing');
+            btn.textContent = '🔔 SONANDO...';
+            btn.style.pointerEvents = 'none';
+
+            await fetch('/api/ring', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ duration: parseInt(duration) })
+            });
+
+            setTimeout(() => {
+                btn.textContent = 'TOCAR TIMBRE AHORA';
+                btn.style.pointerEvents = 'auto';
+            }, duration * 1000 + 500);
         }
 
-        // Cargar horarios al cargar la página
-        loadSchedules();
+        // ─── Inicialización ────────────────────────────────────────────────
+        loadStatus();
+        loadHorarios();
+        loadDias();
+
+        // Actualizar estado cada 30 segundos
+        setInterval(loadStatus, 30000);
     </script>
 </body>
 </html>

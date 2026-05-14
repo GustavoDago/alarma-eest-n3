@@ -1,0 +1,37 @@
+{
+    "duracion_por_defecto": 5,
+    "horarios": [
+        { "hora": "07:30", "etiqueta": "Ingreso Turno Mañana", "duracion": 5 },
+        { "hora": "08:50", "etiqueta": "Inicio Recreo 1 (TM)", "duracion": 5 },
+        { "hora": "09:00", "etiqueta": "Fin Recreo 1 (TM)", "duracion": 5 },
+        { "hora": "10:20", "etiqueta": "Inicio Recreo 2 (TM)", "duracion": 5 },
+        { "hora": "10:30", "etiqueta": "Fin Recreo 2 (TM)", "duracion": 5 },
+        { "hora": "12:45", "etiqueta": "Fin Turno Mañana", "duracion": 8 },
+        { "hora": "13:15", "etiqueta": "Ingreso Turno Tarde", "duracion": 5 },
+        { "hora": "14:35", "etiqueta": "Inicio Recreo 1 (TT)", "duracion": 5 },
+        { "hora": "14:45", "etiqueta": "Fin Recreo 1 (TT)", "duracion": 5 },
+        { "hora": "16:05", "etiqueta": "Inicio Recreo 2 (TT)", "duracion": 5 },
+        { "hora": "16:15", "etiqueta": "Fin Recreo 2 (TT)", "duracion": 5 },
+        { "hora": "17:45", "etiqueta": "Fin Turno Tarde", "duracion": 8 }
+    ],
+    "dias_sin_timbre": [
+        { "fecha": "2026-01-01", "motivo": "Año Nuevo" },
+        { "fecha": "2026-02-16", "motivo": "Carnaval" },
+        { "fecha": "2026-02-17", "motivo": "Carnaval" },
+        { "fecha": "2026-03-23", "motivo": "Puente turístico" },
+        { "fecha": "2026-03-24", "motivo": "Día de la Memoria" },
+        { "fecha": "2026-04-02", "motivo": "Día del Veterano (Malvinas)" },
+        { "fecha": "2026-04-03", "motivo": "Viernes Santo" },
+        { "fecha": "2026-05-01", "motivo": "Día del Trabajador" },
+        { "fecha": "2026-05-25", "motivo": "Día de la Revolución de Mayo" },
+        { "fecha": "2026-06-17", "motivo": "Güemes" },
+        { "fecha": "2026-06-20", "motivo": "Día de la Bandera" },
+        { "fecha": "2026-07-09", "motivo": "Día de la Independencia" },
+        { "fecha": "2026-07-10", "motivo": "Puente turístico" },
+        { "fecha": "2026-08-17", "motivo": "San Martín" },
+        { "fecha": "2026-10-12", "motivo": "Diversidad Cultural" },
+        { "fecha": "2026-11-20", "motivo": "Día de la Soberanía" },
+        { "fecha": "2026-12-08", "motivo": "Inmaculada Concepción" },
+        { "fecha": "2026-12-25", "motivo": "Navidad" }
+    ]
+}
