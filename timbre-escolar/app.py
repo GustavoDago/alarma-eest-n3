@@ -48,15 +48,18 @@ def es_dia_sin_timbre(fecha=None):
 
 # ─── Trabajo del Relé ─────────────────────────────────────────────────────────
 
-def ring_job(duration_seconds, etiqueta):
+def ring_job(duration_seconds, etiqueta, intermitente=False):
     """Ejecuta el timbre solo si hoy es un día hábil."""
     excluido, motivo = es_dia_sin_timbre()
     if excluido:
         print(f"🚫 [SCHEDULER] Timbre cancelado: {motivo}. No se activa '{etiqueta}'.")
         return
 
-    print(f"⏰ [SCHEDULER] ¡Tocando el timbre! '{etiqueta}' por {duration_seconds} segundos.")
-    trigger_relay(duration_seconds)
+    if intermitente:
+        print(f"⏰ [SCHEDULER] ¡Tocando el timbre intermitente! '{etiqueta}'.")
+    else:
+        print(f"⏰ [SCHEDULER] ¡Tocando el timbre! '{etiqueta}' por {duration_seconds} segundos.")
+    trigger_relay(duration_seconds, intermitente=intermitente)
 
 # ─── Programador de Tareas ────────────────────────────────────────────────────
 
@@ -70,11 +73,12 @@ def schedule_jobs():
         hora, minuto = horario['hora'].split(':')
         duracion = horario.get('duracion', duracion_defecto)
         etiqueta = horario.get('etiqueta', f"Timbre {horario['hora']}")
+        intermitente = horario.get('intermitente', False)
 
         scheduler.add_job(
             func=ring_job,
             trigger=CronTrigger(day_of_week='mon-fri', hour=int(hora), minute=int(minuto)),
-            args=[duracion, etiqueta],
+            args=[duracion, etiqueta, intermitente],
             id=f"timbre_{idx}",
             name=etiqueta,
             replace_existing=True
@@ -137,7 +141,8 @@ def add_horario():
     nuevo = {
         'hora': data['hora'],
         'etiqueta': data.get('etiqueta', f"Timbre {data['hora']}"),
-        'duracion': int(data.get('duracion', config.get('duracion_por_defecto', 5)))
+        'duracion': int(data.get('duracion', config.get('duracion_por_defecto', 5))),
+        'intermitente': bool(data.get('intermitente', False))
     }
 
     config['horarios'].append(nuevo)

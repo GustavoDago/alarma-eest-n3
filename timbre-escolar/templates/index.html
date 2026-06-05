@@ -254,6 +254,12 @@
             font-weight: 500;
         }
 
+        .schedule-duration.intermittent {
+            background: var(--accent-morning-dim);
+            color: var(--accent-morning);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
         .btn-delete {
             background: transparent;
             border: 1px solid transparent;
@@ -348,6 +354,38 @@
 
         .form-field input:focus {
             border-color: var(--accent-info);
+        }
+
+        .form-field-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            height: 42px;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color var(--transition);
+        }
+        
+        .form-field-checkbox:focus-within {
+            border-color: var(--accent-info);
+        }
+
+        .form-field-checkbox label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .form-field-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-info);
+            cursor: pointer;
         }
 
         /* ─── Buttons ──────────────────────────────────────────────────── */
@@ -515,6 +553,10 @@
                     <label>Duración (s)</label>
                     <input type="number" id="inputDuracion" value="5" min="1" max="60">
                 </div>
+                <div class="form-field-checkbox">
+                    <input type="checkbox" id="inputIntermitente" onchange="toggleIntermitente(this)">
+                    <label for="inputIntermitente">Intermitente</label>
+                </div>
                 <button class="btn btn-primary" onclick="addHorario()">Guardar</button>
                 <button class="btn btn-secondary" onclick="toggleForm('addHorarioForm')">Cancelar</button>
             </div>
@@ -578,6 +620,17 @@
             form.classList.toggle('visible');
         }
 
+        function toggleIntermitente(checkbox) {
+            const inputDuracion = document.getElementById('inputDuracion');
+            if (checkbox.checked) {
+                inputDuracion.disabled = true;
+                inputDuracion.style.opacity = '0.5';
+            } else {
+                inputDuracion.disabled = false;
+                inputDuracion.style.opacity = '1';
+            }
+        }
+
         // ─── Cargar Estado ─────────────────────────────────────────────────
         async function loadStatus() {
             try {
@@ -632,12 +685,16 @@
                     lastShift = shift;
                 }
 
+                const durationBadge = h.intermitente 
+                    ? `<span class="schedule-duration intermittent">Intermitente</span>`
+                    : `<span class="schedule-duration">${h.duracion}s</span>`;
+
                 html += `
                     <div class="schedule-item">
                         <span class="schedule-dot ${shift}"></span>
                         <span class="schedule-time">${h.hora}</span>
                         <span class="schedule-label">${h.etiqueta}</span>
-                        <span class="schedule-duration">${h.duracion}s</span>
+                        ${durationBadge}
                         <button class="btn-delete" onclick="deleteHorario(${idx})" title="Eliminar">✕</button>
                     </div>
                 `;
@@ -679,6 +736,7 @@
             const hora = document.getElementById('inputHora').value;
             const etiqueta = document.getElementById('inputEtiqueta').value;
             const duracion = document.getElementById('inputDuracion').value;
+            const intermitente = document.getElementById('inputIntermitente').checked;
 
             if (!hora) { alert('Seleccioná una hora.'); return; }
             if (!etiqueta) { alert('Escribí una etiqueta para el timbre.'); return; }
@@ -686,12 +744,17 @@
             await fetch('/api/horarios', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hora, etiqueta, duracion })
+                body: JSON.stringify({ hora, etiqueta, duracion, intermitente })
             });
 
             document.getElementById('inputHora').value = '';
             document.getElementById('inputEtiqueta').value = '';
             document.getElementById('inputDuracion').value = '5';
+            
+            const checkbox = document.getElementById('inputIntermitente');
+            checkbox.checked = false;
+            toggleIntermitente(checkbox);
+
             toggleForm('addHorarioForm');
             loadHorarios();
             loadStatus();

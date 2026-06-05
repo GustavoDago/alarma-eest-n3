@@ -40,10 +40,10 @@ function Test-Relay {
         $cmdOn  = [byte[]](0xA0, 0x01, 0x01, 0xA2)
         $cmdOff = [byte[]](0xA0, 0x01, 0x00, 0xA1)
 
-        for ($i = 1; $i -le 2; $i++) {
+        for ($i = 1; $i -le 3; $i++) {
             Write-Host "Click #${i}: Encendiendo..." -NoNewline -ForegroundColor Yellow
             $serial.Write($cmdOn, 0, $cmdOn.Length)
-            Start-Sleep -Milliseconds 1200
+            Start-Sleep -Milliseconds 1250
             
             Write-Host " Apagando." -ForegroundColor Gray
             $serial.Write($cmdOff, 0, $cmdOff.Length)

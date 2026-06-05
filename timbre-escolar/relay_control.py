@@ -14,23 +14,40 @@ BAUD_RATE = 9600
 CMD_ON = bytes([0xA0, 0x01, 0x01, 0xA2])
 CMD_OFF = bytes([0xA0, 0x01, 0x00, 0xA1])
 
-def trigger_relay(duration_seconds):
+def trigger_relay(duration_seconds, intermitente=False):
     """
     Esta función maneja la conexión física con el Relé USB.
     Envía la señal de encendido, espera el tiempo de duración y lo apaga.
+    Si intermitente es True, realiza un ciclo de 1s encendido, 1s silencio, 1s encendido.
     """
     ser = None
     try:
         print(f"🔌 [HARDWARE] Intentando abrir puerto {SERIAL_PORT}...")
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
         
-        print("🔌 [HARDWARE] Enviando señal de ENCENDIDO al Relé...")
-        ser.write(CMD_ON)
-        
-        time.sleep(duration_seconds)
-        
-        print("🔌 [HARDWARE] Enviando señal de APAGADO al Relé...")
-        ser.write(CMD_OFF)
+        if intermitente:
+            print("🔌 [HARDWARE] Enviando señal de ENCENDIDO al Relé (Intermitente - Pulso 1)...")
+            ser.write(CMD_ON)
+            time.sleep(1)
+            
+            print("🔌 [HARDWARE] Enviando señal de APAGADO al Relé (Intermitente - Silencio)...")
+            ser.write(CMD_OFF)
+            time.sleep(1)
+            
+            print("🔌 [HARDWARE] Enviando señal de ENCENDIDO al Relé (Intermitente - Pulso 2)...")
+            ser.write(CMD_ON)
+            time.sleep(1)
+            
+            print("🔌 [HARDWARE] Enviando señal de APAGADO al Relé (Intermitente - Apagado Final)...")
+            ser.write(CMD_OFF)
+        else:
+            print("🔌 [HARDWARE] Enviando señal de ENCENDIDO al Relé...")
+            ser.write(CMD_ON)
+            
+            time.sleep(duration_seconds)
+            
+            print("🔌 [HARDWARE] Enviando señal de APAGADO al Relé...")
+            ser.write(CMD_OFF)
         
     except Exception as e:
         print(f"❌ [ERROR HARDWARE] Error al comunicarse con el relé: {e}")
