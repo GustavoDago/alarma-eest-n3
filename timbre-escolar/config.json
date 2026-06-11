@@ -17,7 +17,7 @@
         { "hora": "14:25", "etiqueta": "Fin Recreo 1 (TT)", "duracion": 5, "intermitente": false },
         { "hora": "15:20", "etiqueta": "Inicio Recreo Taller", "duracion": 5, "intermitente": true },
         { "hora": "15:25", "etiqueta": "Inicio Recreo 2 (TT)", "duracion": 5, "intermitente": false },
-        { "hora": "13:30", "etiqueta": "Fin Recreo Taller", "duracion": 5, "intermitente": true },
+        { "hora": "15:30", "etiqueta": "Fin Recreo Taller", "duracion": 5, "intermitente": true },
         { "hora": "15:35", "etiqueta": "Fin Recreo 2 (TT)", "duracion": 5, "intermitente": false },
         { "hora": "16:35", "etiqueta": "Inicio Recreo 3 (TT)", "duracion": 5, "intermitente": false },
         { "hora": "16:45", "etiqueta": "Fin Recreo 3 (TT)", "duracion": 5, "intermitente": false },
